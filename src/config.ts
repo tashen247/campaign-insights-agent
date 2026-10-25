@@ -4,7 +4,7 @@ export interface Config {
   root: string;
   anthropicApiKey: string | undefined;
   model: string;
-  /** "hermetic" (default): the Claude Code subprocess gets a minimal env. "inherit": it gets the full parent env. */
+  /** "hermetic" (default): the agent subprocess gets a minimal env. "inherit": it gets the full parent env. */
   agentEnv: "hermetic" | "inherit";
   mockMode: boolean;
   scenario: string;

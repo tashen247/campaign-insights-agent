@@ -21,7 +21,7 @@ export class SdkDriver implements AgentDriver {
       allowedTools: ALLOWED_TOOLS, // explicit names, not a wildcard
       disallowedTools: ["Bash", "Write", "Edit", "WebFetch", "WebSearch"], // second layer
       permissionMode: "dontAsk", // anything not pre-allowed is denied, never prompted
-      settingSources: [], // ignore local Claude Code settings
+      settingSources: [], // ignore local settings files
       maxTurns: cfg.maxTurns,
       maxBudgetUsd: cfg.maxBudgetUsd,
       hooks: sdkHooks(guardrails),
@@ -79,7 +79,7 @@ export class SdkDriver implements AgentDriver {
 }
 
 /**
- * The Claude Code subprocess gets only what it needs, not the parent's whole environment.
+ * The agent subprocess gets only what it needs, not the parent's whole environment.
  * Keeps runs reproducible (no stray settings or plugins from the host) and keeps the prompt small.
  */
 const PASS_THROUGH = ["PATH", "HOME", "TMPDIR", "LANG", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "https_proxy", "http_proxy", "no_proxy", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE"];

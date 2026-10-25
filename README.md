@@ -56,7 +56,7 @@ flowchart LR
 5. **Act.** `create_asana_task` (cited findings, role-based owner, due date) and one `post_slack_summary`.
 6. **Report.** The final answer comes back as JSON through `outputFormat`. It is validated with zod, cross-checked against the run's findings, and rendered to `report.md`.
 
-**Tools** (MCP server `campaign`): `submit_plan`, `get_run_state`, `list_campaigns`, `get_campaign_metrics`, `load_ad_spend_csv`, `analyze_metrics`, `recall_past_findings`, `create_asana_task`, `post_slack_summary`. The built-in Claude Code tools are switched off (`tools: []`, plus `disallowedTools` as a second layer), each campaign tool is allow-listed by full name, and `permissionMode: "dontAsk"` denies anything else.
+**Tools** (MCP server `campaign`): `submit_plan`, `get_run_state`, `list_campaigns`, `get_campaign_metrics`, `load_ad_spend_csv`, `analyze_metrics`, `recall_past_findings`, `create_asana_task`, `post_slack_summary`. The SDK's built-in tools are switched off (`tools: []`, plus `disallowedTools` as a second layer), each campaign tool is allow-listed by full name, and `permissionMode: "dontAsk"` denies anything else.
 
 ## Quick start
 
@@ -107,7 +107,7 @@ The resume URL is different for every execution, so it travels in the request bo
 | A stop at any limit still produces a report that says which limit | Runner fallback report |
 | Untrusted data stays data | Prompt rule + `prompt_injection` eval |
 | Retries: 3 attempts, exponential backoff with full jitter, 429/5xx/network only, `Retry-After` honoured | `src/adapters/retry.ts` |
-| The Claude Code subprocess gets a minimal environment | `AGENT_ENV=hermetic` (default) |
+| The SDK's agent subprocess gets a minimal environment | `AGENT_ENV=hermetic` (default) |
 
 **Why the maths isn't done by the model.** A language model asked to "compare last week with the week before" will do arithmetic in its head, and sometimes it gets it wrong in a convincing way. Here every number comes from `analyze_metrics`, which is pure, deterministic and unit-tested. The tool returns display strings (`"-50.8%"`, `"$4.06"`) and the prompt tells the model to quote them, never to compute or round. The runner then checks that every number in the report appears in some tool output, and the evals fail any run that invents one.
 
