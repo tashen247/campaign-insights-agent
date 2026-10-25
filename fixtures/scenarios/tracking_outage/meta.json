@@ -1,0 +1,12 @@
+{
+  "scenario": "tracking_outage",
+  "seed": 20261018,
+  "since": "2026-08-24",
+  "until": "2026-10-18",
+  "last_week": {
+    "since": "2026-10-12",
+    "until": "2026-10-18"
+  },
+  "planted": "Week 8: Google installs are recorded as 0 on Thu-Sat (2026-10-15..17) while clicks, spend and HubSpot sign-ups carry on - an attribution/postback outage.",
+  "rows": 3360
+}

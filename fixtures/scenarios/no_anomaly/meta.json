@@ -1,0 +1,12 @@
+{
+  "scenario": "no_anomaly",
+  "seed": 20261018,
+  "since": "2026-08-24",
+  "until": "2026-10-18",
+  "last_week": {
+    "since": "2026-10-12",
+    "until": "2026-10-18"
+  },
+  "planted": "Nothing planted. Noise only.",
+  "rows": 3360
+}

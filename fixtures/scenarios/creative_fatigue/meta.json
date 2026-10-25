@@ -1,0 +1,12 @@
+{
+  "scenario": "creative_fatigue",
+  "seed": 20261018,
+  "since": "2026-08-24",
+  "until": "2026-10-18",
+  "last_week": {
+    "since": "2026-10-12",
+    "until": "2026-10-18"
+  },
+  "planted": "Weeks 6-8: CTR on creative TT-DANCE-A decays (x0.85, x0.65, x0.4), dragging its installs down.",
+  "rows": 3360
+}

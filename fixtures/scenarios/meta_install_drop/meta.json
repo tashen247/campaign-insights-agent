@@ -1,0 +1,12 @@
+{
+  "scenario": "meta_install_drop",
+  "seed": 20261018,
+  "since": "2026-08-24",
+  "until": "2026-10-18",
+  "last_week": {
+    "since": "2026-10-12",
+    "until": "2026-10-18"
+  },
+  "planted": "Week 8: click-to-install CVR on both Meta campaigns halves (clicks and spend unchanged), so Meta installs fall ~50% and Meta CPI roughly doubles.",
+  "rows": 3360
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "geo_cpi_spike",
+  "seed": 20261018,
+  "since": "2026-08-24",
+  "until": "2026-10-18",
+  "last_week": {
+    "since": "2026-10-12",
+    "until": "2026-10-18"
+  },
+  "planted": "Week 8: Google CPMs in BR rise 2.6x with installs flat, so BR CPI spikes.",
+  "rows": 3360
+}

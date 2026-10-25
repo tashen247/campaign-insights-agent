@@ -1,0 +1,2 @@
+{"date":"2026-09-14","runId":"seed-0001","finding_id":"F-installs-network-Meta-wow","metric":"installs","groupBy":"network","segment":"Meta","pct_change":"-23.4%","summary":"installs wow for network Meta: 9,812 → 7,516 (-23.4%). Traced to an iOS store-listing change; reverted 2026-09-16."}
+{"date":"2026-09-28","runId":"seed-0002","finding_id":"F-ctr-creative-TT_DANCE_A-wow","metric":"ctr","groupBy":"creative","segment":"TT-DANCE-A","pct_change":"-11.2%","summary":"ctr wow for creative TT-DANCE-A: 1.79% → 1.59% (-11.2%). Below threshold; watched."}
