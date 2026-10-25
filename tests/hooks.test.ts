@@ -94,3 +94,12 @@ describe("SDK hook adapter", () => {
     expect(await hook({ ...base, hook_event_name: "PreToolUse", tool_name: fq("submit_plan"), tool_input: plan }, "u1", { signal })).toEqual({});
   });
 });
+
+describe("SDK-internal tools", () => {
+  it("lets the StructuredOutput tool through without counting it (it carries the final report)", () => {
+    const ctx = makeCtx();
+    const g = createGuardrails(ctx);
+    expect(g.pre("StructuredOutput", { headline: "x" })).toEqual({ action: "allow" });
+    expect(ctx.state.toolCalls).toBe(0);
+  });
+});

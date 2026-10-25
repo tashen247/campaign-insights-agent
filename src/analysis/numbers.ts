@@ -4,6 +4,8 @@
  * matches "44.2%" or "fell 44.2 percent" in the report.
  */
 const DATE = /\b\d{4}-\d{2}-\d{2}\b/g;
+const MONTH = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\\.?";
+const TEXT_DATE = new RegExp(`\\b(?:${MONTH}\\s+\\d{1,2}(?:\\s*[-–]\\s*\\d{1,2})?|\\d{1,2}(?:\\s*[-–]\\s*\\d{1,2})?\\s+${MONTH})\\b`, "gi");
 const IDENT = /\b[A-Za-z][A-Za-z0-9]*(?:[-_][A-Za-z0-9]+)+\b/g; // F-installs-network-Meta-wow, TT-DANCE-A, cmp-meta-pros, run ids
 const NUM = /(?<![\w.])[-+]?\$?\d[\d,]*(?:\.\d+)?(?:%|pp)?(?![\w])/g;
 
@@ -15,7 +17,7 @@ export function normalise(token: string): string | null {
 }
 
 export function extractNumbers(text: string): string[] {
-  const cleaned = text.replace(DATE, " ").replace(IDENT, " ");
+  const cleaned = text.replace(DATE, " ").replace(TEXT_DATE, " ").replace(IDENT, " ");
   return (cleaned.match(NUM) ?? []).map(normalise).filter((x): x is string => x !== null);
 }
 

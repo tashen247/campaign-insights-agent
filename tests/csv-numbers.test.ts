@@ -31,6 +31,10 @@ describe("number cross-check", () => {
   it("normalises formatting and ignores ids, dates and small counts", () => {
     expect(extractNumbers("Installs fell -44.2% ($2.14 → $4,290) on 2026-10-12 in TT-DANCE-A, 3 tasks")).toEqual(["44.2", "2.14", "4290", "3"]);
   });
+  it("ignores written-out dates but flags rounded numbers", () => {
+    expect(extractNumbers("since Oct 12, between 12-18 October and 5 Sept")).toEqual([]);
+    expect(crossCheckNumbers("Meta fell about 50% from Oct 12", [JSON.stringify({ pct: "-50.8%" })]).unverified).toEqual(["50"]);
+  });
   it("passes numbers that came from tools and fails invented ones", () => {
     const sources = [JSON.stringify({ display: { pct_change: "-44.2%", current: "$4.29", previous: "1,204" } })];
     expect(crossCheckNumbers("Installs dropped 44.2% to 1,204; CPI hit $4.29.", sources).unverified).toEqual([]);

@@ -138,7 +138,7 @@ export async function runAgent(opts: RunOptions): Promise<RunOutcome> {
   if (numberCheck.unverified.length) warnings.push(`Unverified numbers: ${numberCheck.unverified.join(", ")}`);
 
   let status: RunStatus;
-  if (result.subtype === "driver_error" && Object.keys(state.findings).length === 0) status = "failed";
+  if ((result.subtype === "driver_error" || result.error) && !validated && Object.keys(state.findings).length === 0) status = "failed";
   else if (!validated) status = "stopped";
   else status = warnings.length ? "succeeded_with_warnings" : "succeeded";
 

@@ -1,0 +1,57 @@
+      1ms  run live-demo-2 · driver=sdk · scenario=meta_install_drop · brief="Why did installs drop last week?"
+   4867ms  · model turn 1
+   4881ms  → submit_plan {"steps":[{"id":"1","goal":"Load ad spend data","tool":"load_ad_spend…
+   4905ms  plan r0: load_ad_spend_csv → list_campaigns + get_campaign_metrics → analyze_metrics → recall_past_findings → create_asana_task, post_slack_summary
+   4905ms  ✓ submit_plan (0ms) accepted r0
+   5333ms  · model turn 1
+   5341ms  → load_ad_spend_csv {}
+   5341ms  · model turn 1
+   5426ms  ✓ load_ad_spend_csv (76ms) 3360 rows 2026-08-24..2026-10-18
+   5443ms  → list_campaigns {}
+   5455ms  ✓ list_campaigns (0ms) 6 campaigns
+   7809ms  · model turn 2
+   7813ms  → get_campaign_metrics {"granularity":"week"}
+   7825ms  ✓ get_campaign_metrics (2ms) 336 sign-up rows loaded
+   7931ms  · model turn 2
+   7935ms  → analyze_metrics {"metric":"installs","groupBy":"network"}
+   7959ms  ✓ analyze_metrics (17ms) installs by network: 1 anomalies (F-installs-network-Meta-wow)
+   9571ms  · model turn 3 "Meta is the driver. Drill in."
+   9967ms  · model turn 3
+   9972ms  → analyze_metrics {"metric":"installs","groupBy":"campaign"}
+   9998ms  ✓ analyze_metrics (17ms) installs by campaign: 2 anomalies (F-installs-campaign-cmp_meta_rtg-w…
+  10308ms  · model turn 3
+  10313ms  → analyze_metrics {"metric":"installs","groupBy":"geo"}
+  10338ms  ✓ analyze_metrics (17ms) installs by geo: 0 anomalies
+  10657ms  · model turn 3
+  10661ms  → analyze_metrics {"metric":"installs","groupBy":"creative"}
+  10686ms  ✓ analyze_metrics (17ms) installs by creative: 4 anomalies (F-installs-creative-MR_VIDEO_B-wow…
+  11009ms  · model turn 3
+  11015ms  → analyze_metrics {"metric":"spend","groupBy":"network"}
+  11041ms  ✓ analyze_metrics (15ms) spend by network: 0 anomalies
+  11485ms  · model turn 3
+  11489ms  → analyze_metrics {"metric":"cvr","groupBy":"network"}
+  11512ms  ✓ analyze_metrics (13ms) cvr by network: 1 anomalies (F-cvr-network-Meta-wow)
+  11706ms  · model turn 3
+  11710ms  → analyze_metrics {"metric":"signup_rate","groupBy":"campaign"}
+  11732ms  ✓ analyze_metrics (10ms) signup_rate by campaign: 0 anomalies
+  11826ms  · model turn 3
+  11830ms  → recall_past_findings {"segment":"Meta"}
+  11838ms  ✓ recall_past_findings (1ms) 1 past findings
+  14156ms  · model turn 4
+  16157ms  · model turn 4
+  16162ms  → create_asana_task {"title":"Investigate Meta CVR collapse (12.23% vs 24.03%)","notes":"…
+  16172ms  ✓ create_asana_task (1ms) created mock-0001
+  18056ms  · model turn 4
+  18061ms  → create_asana_task {"title":"Review Meta creatives MP-UGC-A, MP-STATIC-B, MR-CAROUSEL-A,…
+  18071ms  ✓ create_asana_task (1ms) created mock-0002
+  19863ms  · model turn 4
+  19867ms  → create_asana_task {"title":"Verify Meta click-to-install attribution after Oct 12","not…
+  19876ms  ✓ create_asana_task (2ms) created mock-0003
+  21899ms  · model turn 4
+  21904ms  → post_slack_summary {"headline":"Installs fell -10.6% last week (18,615 vs 20,832), drive…
+  21914ms  ✓ post_slack_summary (1ms) posted https://example.slack.com/archives/C0MOCKCHAN/p1792940659000100
+  32063ms  · model turn 5
+  32557ms  $ 0.1035 · turns=18 · success
+  32563ms  ■ succeeded_with_warnings: Installs fell -10.6% last week (18,615 vs 20,832), almost entirely because Meta…
+
+tool calls: 16 · guardrail blocks: 0 · cost: $0.1035

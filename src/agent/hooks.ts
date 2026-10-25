@@ -6,6 +6,8 @@ import type { HookCallbackMatcher, HookEvent } from "@anthropic-ai/claude-agent-
 import type { ToolContext } from "../tools/context.js";
 import { SERVER_NAME, shortName } from "../tools/context.js";
 
+export const SDK_INTERNAL_TOOLS = ["StructuredOutput"];
+
 export type Decision = { action: "allow" } | { action: "deny"; reason: string } | { action: "stop"; reason: string };
 
 export interface Guardrails {
@@ -27,6 +29,10 @@ export function createGuardrails(ctx: ToolContext): Guardrails {
       const name = shortName(toolName);
 
       if (state.stopReason) return { action: "stop", reason: state.stopReason };
+
+      // outputFormat is delivered through the SDK's own StructuredOutput tool. It is how the final report
+      // arrives, so it is always allowed and does not count against the tool-call cap.
+      if (SDK_INTERNAL_TOOLS.includes(toolName)) return { action: "allow" };
 
       if (!toolName.startsWith(`mcp__${SERVER_NAME}__`)) {
         return block(toolName, "Only the campaign tools are available in this run.", "tool_allowlist");

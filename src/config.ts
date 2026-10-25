@@ -4,6 +4,8 @@ export interface Config {
   root: string;
   anthropicApiKey: string | undefined;
   model: string;
+  /** "hermetic" (default): the Claude Code subprocess gets a minimal env. "inherit": it gets the full parent env. */
+  agentEnv: "hermetic" | "inherit";
   mockMode: boolean;
   scenario: string;
   maxBudgetUsd: number;
@@ -42,6 +44,7 @@ export function loadConfig(overrides: Partial<Config> = {}, env: NodeJS.ProcessE
     root,
     anthropicApiKey: env.ANTHROPIC_API_KEY || undefined,
     model: env.CLAUDE_MODEL || "claude-sonnet-5-5",
+    agentEnv: env.AGENT_ENV === "inherit" ? "inherit" : "hermetic",
     mockMode: bool(env.MOCK_MODE, true),
     scenario: env.SCENARIO || "meta_install_drop",
     maxBudgetUsd: num(env.MAX_BUDGET_USD, 0.5),

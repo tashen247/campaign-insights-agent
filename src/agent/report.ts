@@ -26,7 +26,12 @@ export const ReportSchema = z.object({
 
 export type Report = z.infer<typeof ReportSchema>;
 
-export const reportJsonSchema = (): Record<string, unknown> => z.toJSONSchema(ReportSchema) as Record<string, unknown>;
+/** JSON Schema for outputFormat. Draft-07 without a $schema key: the CLI's validator rejects the 2020-12 meta-schema URI zod emits by default. */
+export const reportJsonSchema = (): Record<string, unknown> => {
+  const { $schema: _drop, ...schema } = z.toJSONSchema(ReportSchema, { target: "draft-7" }) as Record<string, unknown>;
+  void _drop;
+  return schema;
+};
 
 export interface ValidatedReport {
   report: Report;

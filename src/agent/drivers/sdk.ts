@@ -27,6 +27,7 @@ export class SdkDriver implements AgentDriver {
       hooks: sdkHooks(guardrails),
       outputFormat: { type: "json_schema", schema: input.outputSchema },
       cwd: ctx.runDir,
+      env: cfg.agentEnv === "inherit" ? { ...process.env } : hermeticEnv(),
     };
 
     // Streaming input (an async iterable) is the safe mode for in-process SDK MCP servers.
@@ -40,11 +41,19 @@ export class SdkDriver implements AgentDriver {
 
     const q = query({ prompt: prompt(), options });
     let turn = 0;
+    const seen = new Set<string>();
+    let assistantError: string | null = null;
     const out: DriverResult = { structured: null, subtype: "unknown", costUsd: 0, numTurns: 0 };
     try {
       for await (const m of q as AsyncIterable<SDKMessage>) {
         if (m.type === "assistant") {
-          turn += 1;
+          // streamed messages arrive one content block at a time; count a turn once per message id
+          const id = m.message.id ?? m.uuid;
+          if (!seen.has(id)) {
+            seen.add(id);
+            turn += 1;
+          }
+          if (m.error) assistantError = String(m.error);
           const blocks = (m.message.content ?? []) as { type: string; text?: string; name?: string }[];
           const text = blocks.filter((b) => b.type === "text").map((b) => b.text).join(" ").trim();
           const tools = blocks.filter((b) => b.type === "tool_use").map((b) => b.name);
@@ -57,6 +66,7 @@ export class SdkDriver implements AgentDriver {
           out.numTurns = m.num_turns;
           if (m.subtype === "success") out.structured = m.structured_output ?? tryJson(m.result);
           else out.error = "errors" in m && Array.isArray(m.errors) ? m.errors.join("; ") : m.subtype;
+          if (!out.structured && assistantError) out.error = `${assistantError}: ${m.subtype === "success" ? m.result : out.error}`;
           break;
         }
       }
@@ -66,6 +76,17 @@ export class SdkDriver implements AgentDriver {
     }
     return out;
   }
+}
+
+/**
+ * The Claude Code subprocess gets only what it needs, not the parent's whole environment.
+ * Keeps runs reproducible (no stray settings or plugins from the host) and keeps the prompt small.
+ */
+const PASS_THROUGH = ["PATH", "HOME", "TMPDIR", "LANG", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "https_proxy", "http_proxy", "no_proxy", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE"];
+export function hermeticEnv(src: NodeJS.ProcessEnv = process.env): Record<string, string> {
+  const env: Record<string, string> = { CLAUDE_AGENT_SDK_CLIENT_APP: "campaign-insights-agent/0.1.0", CLAUDE_CODE_MAX_RETRIES: "3" };
+  for (const k of PASS_THROUGH) if (src[k]) env[k] = src[k]!;
+  return env;
 }
 
 function tryJson(s: string | undefined): unknown {
