@@ -33,7 +33,13 @@ describe("number cross-check", () => {
   });
   it("ignores written-out dates but flags rounded numbers", () => {
     expect(extractNumbers("since Oct 12, between 12-18 October and 5 Sept")).toEqual([]);
-    expect(crossCheckNumbers("Meta fell about 50% from Oct 12", [JSON.stringify({ pct: "-50.8%" })]).unverified).toEqual(["50"]);
+    expect(crossCheckNumbers("Meta fell 50% from Oct 12", [JSON.stringify({ pct: "-50.8%" })]).unverified).toEqual(["50"]);
+  });
+  it("accepts a hedged approximation only when it is close to a real number", () => {
+    const src = [JSON.stringify({ pct: "-50.8%" })];
+    expect(crossCheckNumbers("Meta fell about 50%", src)).toMatchObject({ unverified: [], approximations: ["50"] });
+    expect(crossCheckNumbers("Meta fell ~50%", src)).toMatchObject({ unverified: [], approximations: ["50"] });
+    expect(crossCheckNumbers("Meta fell about 40%", src).unverified).toEqual(["40"]);
   });
   it("passes numbers that came from tools and fails invented ones", () => {
     const sources = [JSON.stringify({ display: { pct_change: "-44.2%", current: "$4.29", previous: "1,204" } })];

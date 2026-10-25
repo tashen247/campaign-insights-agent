@@ -43,7 +43,7 @@ export interface RunOutcome {
   reportUrl: string;
   driver: string;
   warnings: string[];
-  numberCheck: { checked: number; unverified: string[] };
+  numberCheck: { checked: number; unverified: string[]; approximations: string[] };
   state: RunState;
 }
 

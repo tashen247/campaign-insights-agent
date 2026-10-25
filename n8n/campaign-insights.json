@@ -1,0 +1,312 @@
+{
+  "name": "campaign-insights",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "campaign-brief",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook: brief",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "19b9c436-d9f5-54c0-804f-6a1e9343b1d7",
+      "id": "4e6ba79a-8bb5-5a34-b30f-352edcad3b79"
+    },
+    {
+      "parameters": {
+        "formTitle": "Campaign insights",
+        "formDescription": "Ask a question about last week's campaign performance.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Brief",
+              "placeholder": "Why did installs drop last week?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Form: brief",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        200
+      ],
+      "webhookId": "dea570f7-b8db-5759-b68d-36c644e9cbe7",
+      "id": "677130df-65ef-58ae-8f84-0a8b456d7d2d"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "name": "Every Monday 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        400
+      ],
+      "id": "f055baad-a611-5b5e-9f0c-93924717c2e0"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "brief",
+              "value": "={{ $json.body?.brief ?? $json['Brief'] ?? 'Weekly performance review: anything we need to act on?' }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "requestedBy",
+              "value": "={{ $json.body?.requestedBy ?? $json['Your name'] ?? 'weekly schedule' }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "channel",
+              "value": "={{ $json.body?.channel ?? 'n8n' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Normalise brief",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        200
+      ],
+      "id": "45336a88-b792-554d-97a4-152c7f08defa"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://agent:3000/runs",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ brief: $json.brief, requestedBy: $json.requestedBy, callbackUrl: $execution.resumeUrl }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "Start agent run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        200
+      ],
+      "id": "3b493213-2d49-574a-b541-e346f412e285"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "limitWaitTime": true,
+        "resumeAmount": 10,
+        "resumeUnit": "minutes",
+        "options": {}
+      },
+      "name": "Wait for agent callback",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        200
+      ],
+      "webhookId": "58ba50c3-3026-54a3-83e8-98fcbd1ae00c",
+      "id": "651ec8f8-a784-5e53-ac5d-0bf64110a06f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "failed",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Run succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        980,
+        200
+      ],
+      "id": "80d1cbb5-017d-5771-8a5e-0e8a81dfadaf"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_CHANNEL_ID",
+          "mode": "id"
+        },
+        "text": "=*{{ $json.body.headline }}*\n<{{ $json.body.reportUrl }}|Open the full report> \u00b7 {{ $json.body.tasks }} Asana task(s) \u00b7 status {{ $json.body.status }} \u00b7 run {{ $json.body.runId }}",
+        "otherOptions": {}
+      },
+      "name": "Slack: report link",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1220,
+        100
+      ],
+      "id": "4ac07597-a199-5d69-a5a9-a4b7be3f77f0"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_CHANNEL_ID",
+          "mode": "id"
+        },
+        "text": "=Campaign insights run {{ $json.body.runId }} failed: {{ $json.body.error ?? $json.body.headline }}",
+        "otherOptions": {}
+      },
+      "name": "Slack: run failed",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1220,
+        300
+      ],
+      "id": "8890acf5-e9c7-53f4-89df-6b0aa84a4fd3"
+    }
+  ],
+  "connections": {
+    "Webhook: brief": {
+      "main": [
+        [
+          {
+            "node": "Normalise brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form: brief": {
+      "main": [
+        [
+          {
+            "node": "Normalise brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Monday 08:00": {
+      "main": [
+        [
+          {
+            "node": "Normalise brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise brief": {
+      "main": [
+        [
+          {
+            "node": "Start agent run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start agent run": {
+      "main": [
+        [
+          {
+            "node": "Wait for agent callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for agent callback": {
+      "main": [
+        [
+          {
+            "node": "Run succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Slack: report link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack: run failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

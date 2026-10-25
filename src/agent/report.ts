@@ -95,7 +95,7 @@ export interface ReportMeta {
   numTurns: number;
   toolCalls: number;
   reportUrl: string;
-  numberCheck: { checked: number; unverified: string[] };
+  numberCheck: { checked: number; unverified: string[]; approximations?: string[] };
 }
 
 const esc = (s: string) => s.replace(/\|/g, "\\|").replace(/\n/g, " ");
@@ -144,7 +144,7 @@ export function renderMarkdown(r: Report, state: RunState, m: ReportMeta): strin
     L.push("");
   }
 
-  L.push("---", `Cost $${m.costUsd.toFixed(4)} · ${m.numTurns} model turns · ${m.toolCalls} tool calls · ${m.numberCheck.checked} numbers cross-checked. Trace: \`runs/${m.runId}/trace.jsonl\` (\`npm run trace ${m.runId}\`).`);
+  L.push("---", `Cost $${m.costUsd.toFixed(4)} · ${m.numTurns} model turns · ${m.toolCalls} tool calls · ${m.numberCheck.checked} numbers cross-checked${m.numberCheck.approximations?.length ? ` (${m.numberCheck.approximations.length} hedged approximations)` : ""}. Trace: \`runs/${m.runId}/trace.jsonl\` (\`npm run trace ${m.runId}\`).`);
   return L.join("\n") + "\n";
 }
 
