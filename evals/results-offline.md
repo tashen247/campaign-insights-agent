@@ -1,6 +1,6 @@
 # Eval results (offline baseline, no model)
 
-Generated 2026-10-25T14:58:20.510Z · 1 repeat(s) per scenario · target ≥ 5 of 6 scenarios passing every repeat.
+Generated 2026-10-25T15:15:32.741Z · 1 repeat(s) per scenario · target ≥ 5 of 6 scenarios passing every repeat.
 
 | Scenario | Pass rate | Avg cost | Avg turns | Failed checks |
 |---|---|---|---|---|

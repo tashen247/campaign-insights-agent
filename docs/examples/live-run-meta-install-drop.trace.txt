@@ -1,0 +1,60 @@
+      0ms  run eval-meta-install-drop-1-mvnyw67r · driver=sdk · scenario=meta_install_drop · brief="Why did installs drop last week?"
+   4553ms  · model turn 1
+   4563ms  → submit_plan {"steps":[{"id":"1","goal":"Load ad spend data","tool":"load_ad_spend…
+   4576ms  plan r0: load_ad_spend_csv → list_campaigns, get_campaign_metrics → analyze_metrics → recall_past_findings → create_asana_task, post_slack_summary
+   4576ms  ✓ submit_plan (0ms) accepted r0
+   5100ms  · model turn 1
+   5104ms  → load_ad_spend_csv {}
+   5106ms  · model turn 1
+   5186ms  ✓ load_ad_spend_csv (72ms) 3360 rows 2026-08-24..2026-10-18
+   5207ms  → list_campaigns {}
+   5224ms  ✓ list_campaigns (0ms) 6 campaigns
+   6352ms  · model turn 2
+   6356ms  → analyze_metrics {"metric":"installs","groupBy":"network"}
+   6374ms  ✓ analyze_metrics (11ms) installs by network: 1 anomalies (F-installs-network-Meta-wow)
+   6505ms  · model turn 2
+   6508ms  → get_campaign_metrics {"granularity":"week"}
+   6516ms  ✓ get_campaign_metrics (1ms) 336 sign-up rows loaded
+   7648ms  · model turn 3
+   7652ms  → analyze_metrics {"metric":"installs","groupBy":"campaign"}
+   7667ms  ✓ analyze_metrics (8ms) installs by campaign: 2 anomalies (F-installs-campaign-cmp_meta_rtg-w…
+   8103ms  · model turn 3
+   8107ms  → analyze_metrics {"metric":"installs","groupBy":"geo"}
+   8129ms  ✓ analyze_metrics (15ms) installs by geo: 0 anomalies
+   8452ms  · model turn 3
+   8455ms  → analyze_metrics {"metric":"installs","groupBy":"creative"}
+   8472ms  ✓ analyze_metrics (9ms) installs by creative: 4 anomalies (F-installs-creative-MR_VIDEO_B-wow…
+   8796ms  · model turn 3
+   8801ms  → analyze_metrics {"metric":"spend","groupBy":"network"}
+   8820ms  ✓ analyze_metrics (8ms) spend by network: 0 anomalies
+   9072ms  · model turn 3
+   9078ms  → analyze_metrics {"metric":"signup_rate","groupBy":"campaign"}
+   9097ms  ✓ analyze_metrics (8ms) signup_rate by campaign: 0 anomalies
+   9179ms  · model turn 3
+   9186ms  → recall_past_findings {"segment":"Meta"}
+   9195ms  ✓ recall_past_findings (0ms) 1 past findings
+  10640ms  · model turn 4
+  10908ms  · model turn 4
+  10914ms  → analyze_metrics {"metric":"cvr","groupBy":"campaign"}
+  10933ms  ✓ analyze_metrics (8ms) cvr by campaign: 2 anomalies (F-cvr-campaign-cmp_meta_rtg-wow, F-cvr-…
+  11079ms  · model turn 4
+  11084ms  → analyze_metrics {"metric":"ctr","groupBy":"campaign"}
+  11107ms  ✓ analyze_metrics (8ms) ctr by campaign: 0 anomalies
+  12595ms  · model turn 5
+  14582ms  · model turn 5
+  14586ms  → create_asana_task {"title":"Audit Meta store listing / click-to-install path (CVR halve…
+  14594ms  ✓ create_asana_task (1ms) created mock-0001
+  16515ms  · model turn 5
+  16519ms  → create_asana_task {"title":"Verify Meta install attribution/SDK/MMP link tracking","not…
+  16527ms  ✓ create_asana_task (1ms) created mock-0002
+  18518ms  · model turn 5
+  18523ms  → create_asana_task {"title":"Review Meta budgets while CVR is depressed","notes":"Meta s…
+  18563ms  ✓ create_asana_task (1ms) created mock-0003
+  20689ms  · model turn 5
+  20693ms  → post_slack_summary {"headline":"Installs -10.6% WoW (18,615 vs 20,832), driven entirely …
+  20701ms  ✓ post_slack_summary (1ms) posted https://example.slack.com/archives/C0MOCKCHAN/p1792941213000100
+  29742ms  · model turn 6
+  30349ms  $ 0.1153 · turns=19 · success
+  30354ms  ■ succeeded: Installs fell "-10.6%" week over week ("18,615" vs "20,832"), and the whole dro…
+
+tool calls: 17 · guardrail blocks: 0 · cost: $0.1153
