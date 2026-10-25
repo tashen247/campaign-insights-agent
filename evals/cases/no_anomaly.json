@@ -1,0 +1,8 @@
+{
+  "scenario": "no_anomaly",
+  "brief": "Weekly performance review: anything we need to act on?",
+  "expect": {
+    "noAnomaly": true,
+    "maxTasks": 0
+  }
+}

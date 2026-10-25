@@ -1,0 +1,22 @@
+{
+  "scenario": "creative_fatigue",
+  "brief": "TikTok installs look soft lately. What's going on?",
+  "expect": {
+    "rootCause": {
+      "accept": [
+        {
+          "groupBy": "creative",
+          "segments": [
+            "TT-DANCE-A"
+          ]
+        }
+      ],
+      "metrics": [
+        "ctr",
+        "installs",
+        "cvr"
+      ]
+    },
+    "minRecommendations": 1
+  }
+}

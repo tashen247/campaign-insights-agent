@@ -1,0 +1,21 @@
+{
+  "scenario": "geo_cpi_spike",
+  "brief": "Our CPI jumped last week. Where and why?",
+  "expect": {
+    "rootCause": {
+      "accept": [
+        {
+          "groupBy": "geo",
+          "segments": [
+            "BR"
+          ]
+        }
+      ],
+      "metrics": [
+        "cpi",
+        "spend"
+      ]
+    },
+    "minRecommendations": 1
+  }
+}

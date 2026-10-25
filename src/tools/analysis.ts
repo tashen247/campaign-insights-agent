@@ -46,6 +46,12 @@ export const analyzeMetrics = defineTool({
       total: forModel(out.total),
       segments: out.segments.map(forModel),
       anomalies: out.anomalies,
+      thresholds: {
+        min_change: `${out.thresholds.minAbsPct * 100}%`,
+        min_abs_z: String(out.thresholds.minAbsZ),
+        zero_run_days: String(out.thresholds.zeroRunDays),
+        sustained_decline: `${out.thresholds.sustainedDeclineWeeks} weekly falls of 5%+`,
+      },
     };
   },
   summarize: (r) => {

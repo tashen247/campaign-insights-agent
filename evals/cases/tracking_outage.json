@@ -1,0 +1,31 @@
+{
+  "scenario": "tracking_outage",
+  "brief": "Why did installs drop last week?",
+  "expect": {
+    "rootCause": {
+      "accept": [
+        {
+          "groupBy": "network",
+          "segments": [
+            "Google"
+          ]
+        },
+        {
+          "groupBy": "campaign",
+          "segments": [
+            "cmp-goog-inst",
+            "cmp-goog-troas"
+          ]
+        }
+      ],
+      "metrics": [
+        "installs",
+        "cvr",
+        "signup_rate",
+        "cpi"
+      ]
+    },
+    
+    "minRecommendations": 1
+  }
+}

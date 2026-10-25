@@ -110,14 +110,13 @@ export class OfflineDriver implements AgentDriver {
       else if (net && installsDown(net)) add("conversion", net, f);
       else if (f.groupBy === "geo" && (f.metric === "cpi" || f.metric === "spend")) add("geo_cost", f.segment, f);
       else if (net && f.metric === "cpi") add("network_cost", net, f);
-      else if (f.metric === "signup_rate" && net && tracking.has(net)) add("tracking", net, f);
     }
     // For a conversion story, lead with the install drop itself (what the marketer asked about).
     for (const s of stories.values()) {
       const inst = state.findings[`F-installs-network-${s.seg}-wow`];
-      if (s.kind === "conversion" && inst && s.ids.includes(inst.finding_id)) {
+      if (s.kind === "conversion" && inst?.anomaly) {
         s.lead = inst;
-        s.ids = [inst.finding_id, ...s.ids.filter((id) => id !== inst.finding_id)];
+        s.ids = [inst.finding_id, ...s.ids.filter((id) => id !== inst.finding_id)].slice(0, 4);
       }
     }
     // A story that is only a knock-on of a bigger one (e.g. a geo CPI bump caused by a network-wide drop) ranks below it.
