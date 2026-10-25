@@ -91,6 +91,12 @@
               "name": "channel",
               "value": "={{ $json.body?.channel ?? 'n8n' }}",
               "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "offline",
+              "value": "={{ $json.body?.offline === true }}",
+              "type": "boolean"
             }
           ]
         },
@@ -111,7 +117,7 @@
         "url": "http://agent:3000/runs",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ brief: $json.brief, requestedBy: $json.requestedBy, callbackUrl: $execution.resumeUrl }) }}",
+        "jsonBody": "={{ JSON.stringify({ brief: $json.brief, requestedBy: $json.requestedBy, offline: $json.offline, callbackUrl: $execution.resumeUrl }) }}",
         "options": {
           "timeout": 10000
         }

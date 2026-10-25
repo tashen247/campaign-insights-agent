@@ -1,10 +1,12 @@
 # campaign-insights-agent
 
-**I built an agent that turns a one-line marketing question into a diagnosis, actions and owners.**
+![ci](https://github.com/tashen247/campaign-insights-agent/actions/workflows/ci.yml/badge.svg)
+
+One question in; out come a ranked diagnosis, evidence-cited recommendations, up to five Asana tasks and one Slack summary, every step traced and costed (about $0.09 a run).
 
 Ask *"Why did installs drop last week?"* in an n8n form, a webhook or the CLI. A Claude Agent SDK agent writes a plan, pulls campaign data from HubSpot and an attribution export, runs deterministic checks, and comes back with a ranked diagnosis, evidence-backed recommendations, Asana tasks assigned by role and one Slack summary. Every step, tool call, guardrail block and cent is in a JSONL trace.
 
-<!-- Demo GIF: terminal trace on the left, Slack + Asana on the right, under 30 seconds. Record after a live run and save as docs/demo.gif -->
+![Demo: one question in, diagnosis, Asana tasks and Slack summary out](docs/demo.gif)
 
 ```
 $ npm run demo -- "Why did installs drop last week?"
@@ -24,7 +26,7 @@ Full reports and traces from live runs are in [`docs/examples/`](docs/examples/)
 
 ## Why I built it
 
-I've spent 20+ years, since 2002, building integration and messaging systems. I wanted to see how far an agent could take a growth question on its own, end to end, safely: not a dashboard someone still has to read, but the diagnosis, the actions and the owners, with a record of how it got there.
+I've spent 24 years building integration and messaging systems. I wanted to see how far an agent could take a growth question on its own, end to end, safely: not a dashboard someone still has to read, but the diagnosis, the actions and the owners, with a record of how it got there.
 
 ## How it works
 
@@ -60,7 +62,7 @@ flowchart LR
 
 ## Quick start
 
-Node 20+.
+Node 22+.
 
 ```bash
 npm install
@@ -90,7 +92,7 @@ Other scenarios: `--scenario geo_cpi_spike | creative_fatigue | tracking_outage 
 
 **Webhook / Form / Monday 08:00 schedule → Normalise brief → Start agent run (HTTP POST with `callbackUrl = $execution.resumeUrl`) → Wait (resume on webhook call) → Run succeeded? → Slack: report link / Slack: run failed**
 
-The resume URL is different for every execution, so it travels in the request body, not in an env var. Set your Slack credential and channel id on the two Slack nodes. The JSON imports cleanly with the n8n 1.123 CLI (`n8n import:workflow`); I haven't yet run it end to end inside n8n. The Form trigger works locally. A Slack slash command needs a public URL and a 3-second ack, so put a tunnel (cloudflared or ngrok) in front of n8n if you want one.
+The resume URL is different for every execution, so it travels in the request body, not in an env var. Set your Slack credential and channel id on the two Slack nodes. I've run it end to end with `docker compose` (n8n 1.123): Webhook → agent run → Wait resumed by the agent's callback → IF → Slack ([screenshot](docs/n8n-run.png); Slack nodes deactivated because no workspace was connected). To try it without an API key, send `"offline": true` in the webhook body. The Form trigger works locally. A Slack slash command needs a public URL and a 3-second ack, so put a tunnel (cloudflared or ngrok) in front of n8n if you want one.
 
 ## Guardrails and cost controls
 

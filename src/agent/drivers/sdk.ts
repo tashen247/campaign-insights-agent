@@ -57,7 +57,7 @@ export class SdkDriver implements AgentDriver {
           const blocks = (m.message.content ?? []) as { type: string; text?: string; name?: string }[];
           const text = blocks.filter((b) => b.type === "text").map((b) => b.text).join(" ").trim();
           const tools = blocks.filter((b) => b.type === "tool_use").map((b) => b.name);
-          ctx.logger.log("turn", { turn, text: text.slice(0, 400) || null, tool_uses: tools, usage: m.message.usage ?? null });
+          ctx.logger.log("turn", { turn, model: m.message.model ?? null, text: text.slice(0, 400) || null, tool_uses: tools, usage: m.message.usage ?? null });
         } else if (m.type === "system" && m.subtype === "api_retry") {
           ctx.logger.log("retry", { source: "anthropic_api", attempt: m.attempt, status: m.error_status, delayMs: m.retry_delay_ms });
         } else if (m.type === "result") {

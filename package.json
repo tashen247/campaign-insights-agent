@@ -1,12 +1,24 @@
 {
   "name": "campaign-insights-agent",
   "version": "0.1.0",
-  "description": "Claude Agent SDK agent that turns a one-line marketing question into a diagnosis, Asana tasks and a Slack summary.",
+  "description": "Agent that turns a one-line marketing question into a diagnosis, Asana tasks and a Slack summary, with guardrails, budget caps, traces and evals.",
   "author": "Tashen Muthayan",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tashen247/campaign-insights-agent"
+  },
+  "keywords": [
+    "agents",
+    "n8n",
+    "hubspot",
+    "asana",
+    "slack",
+    "marketing-analytics"
+  ],
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "gen-data": "tsx scripts/gen-data.ts",

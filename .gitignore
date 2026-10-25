@@ -5,5 +5,3 @@ runs/*
 coverage/
 memory/insights.jsonl
 
-# private planning notes, not part of the repo
-01-campaign-insights-agent.md

@@ -16,6 +16,7 @@ services:
     ports:
       - "5678:5678"
     environment:
+      N8N_LISTEN_ADDRESS: 0.0.0.0
       N8N_SECURE_COOKIE: "false"
       WEBHOOK_URL: http://n8n:5678/
       GENERIC_TIMEZONE: Africa/Johannesburg
