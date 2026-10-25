@@ -20,6 +20,9 @@ services:
       N8N_SECURE_COOKIE: "false"
       WEBHOOK_URL: http://n8n:5678/
       GENERIC_TIMEZONE: Africa/Johannesburg
+      # the Slack nodes read the channel from here
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      SLACK_CHANNEL_ID: ${SLACK_CHANNEL_ID}
     volumes:
       - n8n_data:/home/node/.n8n
       - ./n8n:/workflows:ro

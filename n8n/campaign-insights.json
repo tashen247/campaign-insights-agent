@@ -187,7 +187,7 @@
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "REPLACE_WITH_CHANNEL_ID",
+          "value": "={{ $env.SLACK_CHANNEL_ID }}",
           "mode": "id"
         },
         "text": "=*{{ $json.body.headline }}*\n<{{ $json.body.reportUrl }}|Open the full report> \u00b7 {{ $json.body.tasks }} Asana task(s) \u00b7 status {{ $json.body.status }} \u00b7 run {{ $json.body.runId }}",
@@ -200,14 +200,20 @@
         1220,
         100
       ],
-      "id": "4ac07597-a199-5d69-a5a9-a4b7be3f77f0"
+      "id": "4ac07597-a199-5d69-a5a9-a4b7be3f77f0",
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      }
     },
     {
       "parameters": {
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "REPLACE_WITH_CHANNEL_ID",
+          "value": "={{ $env.SLACK_CHANNEL_ID }}",
           "mode": "id"
         },
         "text": "=Campaign insights run {{ $json.body.runId }} failed: {{ $json.body.error ?? $json.body.headline }}",
@@ -220,7 +226,13 @@
         1220,
         300
       ],
-      "id": "8890acf5-e9c7-53f4-89df-6b0aa84a4fd3"
+      "id": "8890acf5-e9c7-53f4-89df-6b0aa84a4fd3",
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      }
     }
   ],
   "connections": {
