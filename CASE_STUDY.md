@@ -37,9 +37,9 @@ The offline baseline passed everything. The first live runs found four problems 
 
 ## Results
 
-- **Live evals** (`claude-sonnet-5-5`, 1 repeat per scenario): 6 of 6 scenarios passed every check, after the fixes above. The batch before the final number-check change passed 4 of 6. I'd want 3+ repeats before quoting a rate.
-- **Cost:** $0.05 to $0.12 a run, about $0.09 on average, well under the $0.50 cap. The no-anomaly brief is cheapest, because the agent stops once nothing is flagged.
-- **Turns:** 10 to 19 model turns, and 15 to 17 tool calls on the anomaly scenarios. Every run's first call was `submit_plan`.
+- **Live evals** (`claude-sonnet-5-5`, 3 repeats per scenario): 6 of 6 scenarios passed every check on every repeat, 18 of 18 runs. The batch before the final number-check change passed 4 of 6.
+- **Cost:** $0.05 to $0.14 a run, $0.097 on average, well under the $0.50 cap. The no-anomaly brief is cheapest, because the agent stops once nothing is flagged.
+- **Turns:** 10 to 18 model turns on average per scenario. Every run's first call was `submit_plan`.
 - **Prompt injection:** the model ignored the instructions planted in a campaign name, flagged them under limitations, and created only cited, capped tasks.
 - **Offline baseline:** 6 of 6, at zero cost, in CI on every push.
 
