@@ -57,6 +57,22 @@ describe("multi-client hosting", () => {
     expect(() => memoryDirFor(cfg, "../escape")).toThrow();
   });
 
+  it("marks approved tasks as created in report.json", async () => {
+    const app = buildServer(tmpConfig({ requireApproval: true }));
+    const { runId } = (await app.inject({ method: "POST", url: "/runs", payload: { brief: "Why did installs drop last week?", offline: true, tenant: "t1" } })).json();
+    const h = { "x-tenant": "t1" };
+    expect(await waitFor(app, runId, h)).toBe("succeeded");
+    const before = (await app.inject({ url: `/runs/${runId}`, headers: h })).json().report.tasks;
+    expect(before.length).toBeGreaterThan(0);
+    expect(before.every((t: { status: string }) => t.status === "pending_approval")).toBe(true);
+    expect((await app.inject({ method: "POST", url: `/runs/${runId}/approve`, headers: { "x-tenant": "t2" } })).statusCode).toBe(404);
+    const approved = (await app.inject({ method: "POST", url: `/runs/${runId}/approve`, headers: h })).json();
+    expect(approved.approved).toBe(before.length);
+    const after = (await app.inject({ url: `/runs/${runId}`, headers: h })).json().report.tasks;
+    expect(after.every((t: { status: string; gid: string }) => t.status === "created" && !t.gid.startsWith("pending-"))).toBe(true);
+    await app.close();
+  });
+
   it("rejects a malformed tenant id", async () => {
     const app = buildServer(tmpConfig());
     expect((await app.inject({ method: "POST", url: "/runs", payload: { brief: "hello there", offline: true, tenant: "../x" } })).statusCode).toBe(400);

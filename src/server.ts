@@ -127,6 +127,17 @@ export function buildServer(cfg: Config = loadConfig()) {
       const { value } = await ledger.once(`${p.key}:approved`, () => adapters.asana.createTask({ name: p.name, notes: p.notes, assigneeGid: p.assigneeGid, dueOn: p.dueOn }));
       created.push({ pending: p.gid, ...value });
     }
+    // Keep report.json truthful: the approved tasks now exist, so they are no longer "pending_approval".
+    const reportFile = path.join(dir, "report.json");
+    if (fs.existsSync(reportFile)) {
+      const report = JSON.parse(fs.readFileSync(reportFile, "utf8"));
+      const byPending = new Map(created.map((c) => [c.pending, c as { pending: string; gid?: string; url?: string }]));
+      report.tasks = (report.tasks ?? []).map((t: { gid: string; url?: string; status?: string }) => {
+        const c = byPending.get(t.gid);
+        return c ? { ...t, gid: c.gid ?? t.gid, url: c.url ?? t.url, status: "created" } : t;
+      });
+      fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
+    }
     return { approved: created.length, tasks: created };
   });
 
