@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { loadConfig, type Config } from "../config.js";
+import { loadConfig, memoryDirFor, type Config } from "../config.js";
 import { createAdapters, ConfigError } from "../adapters/index.js";
 import { fetchWithRetry } from "../adapters/retry.js";
 import { Ledger } from "../adapters/ledger.js";
@@ -27,6 +27,8 @@ export interface RunOptions {
   offline?: boolean;
   runId?: string;
   callbackUrl?: string;
+  /** Client this run belongs to; isolates memory (see memoryDirFor). */
+  tenant?: string;
   cfg?: Config;
   driver?: AgentDriver;
   quiet?: boolean;
@@ -93,11 +95,15 @@ export async function runAgent(opts: RunOptions): Promise<RunOutcome> {
   const ownersFile = path.join(cfg.root, "config", "owners.json");
   const owners: Owners = fs.existsSync(ownersFile) ? JSON.parse(fs.readFileSync(ownersFile, "utf8")) : {};
   const reportUrl = `${cfg.publicBaseUrl}/runs/${runId}/report`;
-  const memory = new InsightMemory(cfg.memoryDir);
+  // A tenant gets its own memory. It starts from the demo history only in mock mode, so a real
+  // client's first report never cites invented past incidents.
+  const memory = opts.tenant
+    ? new InsightMemory(memoryDirFor(cfg, opts.tenant), cfg.mockMode ? path.join(cfg.memoryDir, "seed.jsonl") : null)
+    : new InsightMemory(cfg.memoryDir);
   const ctx: ToolContext = { cfg, state, adapters, ledger: new Ledger(path.join(runDir, "side_effects.json")), logger, memory, owners, runDir, reportUrl };
   const guardrails = createGuardrails(ctx);
 
-  writeStatus(runDir, { runId, status: "running", brief: opts.brief });
+  writeStatus(runDir, { runId, status: "running", brief: opts.brief, ...(opts.tenant ? { tenant: opts.tenant } : {}) });
   logger.log("run_start", { brief: opts.brief, requestedBy: state.requestedBy, driver: driver.name, model: driver.model, scenario, mockMode: cfg.mockMode, limits: { maxTurns: cfg.maxTurns, maxBudgetUsd: cfg.maxBudgetUsd, maxToolCalls: cfg.maxToolCalls, maxAsanaTasks: cfg.maxAsanaTasks } });
 
   let result: DriverResult;
@@ -152,7 +158,7 @@ export async function runAgent(opts: RunOptions): Promise<RunOutcome> {
   memory.appendFindings(runId, Object.values(state.findings));
 
   logger.log("final", { status, headline: report.headline, tasks: state.tasks.length, slack: !!state.slack, warnings });
-  writeStatus(runDir, { runId, status, headline: report.headline, reportUrl, costUsd: result.costUsd });
+  writeStatus(runDir, { runId, status, headline: report.headline, reportUrl, costUsd: result.costUsd, ...(opts.tenant ? { tenant: opts.tenant } : {}) });
 
   if (opts.callbackUrl) {
     try {

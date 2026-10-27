@@ -13,6 +13,8 @@ export interface Config {
   maxToolCalls: number;
   maxAsanaTasks: number;
   requireApproval: boolean;
+  /** When set, every route except /health needs header x-api-key with this value. */
+  apiKey: string | undefined;
   publicBaseUrl: string;
   port: number;
   hubspot: { token?: string; campaignProperty: string };
@@ -52,6 +54,7 @@ export function loadConfig(overrides: Partial<Config> = {}, env: NodeJS.ProcessE
     maxToolCalls: num(env.MAX_TOOL_CALLS, 25),
     maxAsanaTasks: num(env.MAX_ASANA_TASKS, 5),
     requireApproval: bool(env.REQUIRE_APPROVAL, false),
+    apiKey: env.AGENT_API_KEY || undefined,
     publicBaseUrl: (env.PUBLIC_BASE_URL || `http://localhost:${num(env.PORT, 3000)}`).replace(/\/$/, ""),
     port: num(env.PORT, 3000),
     hubspot: { token: env.HUBSPOT_ACCESS_TOKEN || undefined, campaignProperty: env.HUBSPOT_CAMPAIGN_PROPERTY || "campaign_id" },
@@ -66,4 +69,17 @@ export function loadConfig(overrides: Partial<Config> = {}, env: NodeJS.ProcessE
 
 export function scenarioDir(cfg: Config, scenario = cfg.scenario): string {
   return path.join(cfg.fixturesDir, "scenarios", scenario);
+}
+
+export const TENANT_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
+ * Where a run's cross-run memory lives. Without a tenant it is the shared memory/ folder (CLI, n8n).
+ * With a tenant (a multi-client host such as the Tash Tech Platform) each client gets its own
+ * memory/tenants/<tenant>/, so one client's history is never recalled in another client's report.
+ */
+export function memoryDirFor(cfg: Config, tenant?: string): string {
+  if (!tenant) return cfg.memoryDir;
+  if (!TENANT_ID.test(tenant)) throw new Error("tenant must be 1-64 letters, digits, - or _");
+  return path.join(cfg.memoryDir, "tenants", tenant);
 }

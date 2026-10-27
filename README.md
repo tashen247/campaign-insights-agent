@@ -94,6 +94,15 @@ Other scenarios: `--scenario geo_cpi_spike | creative_fatigue | tracking_outage 
 
 The resume URL is different for every execution, so it travels in the request body, not in an env var. The Slack nodes read the channel from `SLACK_CHANNEL_ID` in `.env`. In n8n, create a Slack credential named **Slack account** and paste your `SLACK_BOT_TOKEN` into it (the bot needs `chat:write`, plus `chat:write.public` to post without being invited). I've run it end to end with `docker compose` (n8n 1.123): Webhook → agent run → Wait resumed by the agent's callback → IF → Slack, with the report link posted to a real Slack channel ([screenshot](docs/n8n-run.png)). To try it without an API key, send `"offline": true` in the webhook body. The Form trigger works locally. A Slack slash command needs a public URL and a 3-second ack, so put a tunnel (cloudflared or ngrok) in front of n8n if you want one.
 
+## Hosting it for several clients
+
+The [Tash Tech Platform](https://github.com/tashen247/tashtech-platform) runs this agent behind its own login, one tenant per client. Two settings make that safe:
+
+- `AGENT_API_KEY`: when set, every route except `/health` needs header `x-api-key` with this value, so only the platform can start or read runs.
+- `tenant` on `POST /runs`: the run keeps its own memory in `memory/tenants/<tenant>/`, so one client's history is never recalled in another client's report. The run can then only be read, or have its tasks approved, with header `x-tenant` set to the same value. A tenant's memory starts from the demo history only in mock mode.
+
+Without either, the agent behaves exactly as before (CLI and n8n).
+
 ## Guardrails and cost controls
 
 | Control | Where |
