@@ -19,14 +19,18 @@ export interface PastFinding {
  */
 export class InsightMemory {
   private readonly file: string;
-  constructor(private readonly dir: string) {
+  /** seedFrom: file copied in on first use (the demo history); null starts empty. */
+  constructor(
+    private readonly dir: string,
+    private readonly seedFrom: string | null = path.join(dir, "seed.jsonl"),
+  ) {
     this.file = path.join(dir, "insights.jsonl");
   }
   private ensure() {
     if (fs.existsSync(this.file)) return;
     fs.mkdirSync(this.dir, { recursive: true });
-    const seed = path.join(this.dir, "seed.jsonl");
-    fs.writeFileSync(this.file, fs.existsSync(seed) ? fs.readFileSync(seed, "utf8") : "");
+    const seed = this.seedFrom;
+    fs.writeFileSync(this.file, seed && fs.existsSync(seed) ? fs.readFileSync(seed, "utf8") : "");
   }
   all(): PastFinding[] {
     this.ensure();

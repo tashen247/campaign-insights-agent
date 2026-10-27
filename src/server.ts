@@ -5,12 +5,17 @@
  *   GET  /runs/:id/report      report.md (text/markdown)
  *   POST /runs/:id/approve     create tasks queued while REQUIRE_APPROVAL=true
  *   GET  /health
+ *
+ * Optional, for a multi-client host: AGENT_API_KEY makes every route but /health require header
+ * x-api-key; a run started with { tenant } keeps its own memory and can only be read, or have its
+ * tasks approved, with header x-tenant set to the same value.
  */
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import Fastify from "fastify";
 import { z } from "zod";
-import { loadConfig, type Config } from "./config.js";
+import { loadConfig, TENANT_ID, type Config } from "./config.js";
 import { newRunId, pickDriver, runAgent, writeStatus } from "./agent/runner.js";
 import { createAdapters } from "./adapters/index.js";
 import { Ledger } from "./adapters/ledger.js";
@@ -21,13 +26,40 @@ const RunBody = z.object({
   callbackUrl: z.string().url().optional(),
   scenario: z.string().regex(/^[a-z_]+$/).optional(),
   offline: z.boolean().optional(),
+  tenant: z.string().regex(TENANT_ID).optional(),
 });
 
 const ID = /^[A-Za-z0-9_-]{4,64}$/;
 
+function readTenant(runsDir: string, id: string): unknown {
+  const file = path.join(runsDir, id, "status.json");
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")).tenant : undefined;
+}
+
+function sameSecret(given: string | undefined, expected: string): boolean {
+  const a = Buffer.from(given ?? "");
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/** A run that belongs to a tenant is only visible to callers that name that tenant. */
+function tenantAllowed(statusTenant: unknown, header: string | string[] | undefined): boolean {
+  if (typeof statusTenant !== "string" || !statusTenant) return true;
+  return header === statusTenant;
+}
+
 export function buildServer(cfg: Config = loadConfig()) {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? "info" } });
   const running = new Map<string, Promise<unknown>>();
+
+  if (cfg.apiKey) {
+    const key = cfg.apiKey;
+    app.addHook("onRequest", async (req, reply) => {
+      if (req.url === "/health") return;
+      const given = req.headers["x-api-key"];
+      if (!sameSecret(typeof given === "string" ? given : undefined, key)) return reply.code(401).send({ error: "unauthorized" });
+    });
+  }
 
   app.get("/health", async () => ({ ok: true, mockMode: cfg.mockMode, model: cfg.model }));
 
@@ -44,12 +76,12 @@ export function buildServer(cfg: Config = loadConfig()) {
     }
     const runId = newRunId();
     fs.mkdirSync(path.join(cfg.runsDir, runId), { recursive: true });
-    writeStatus(path.join(cfg.runsDir, runId), { runId, status: "queued", brief: body.brief });
+    writeStatus(path.join(cfg.runsDir, runId), { runId, status: "queued", brief: body.brief, ...(body.tenant ? { tenant: body.tenant } : {}) });
     // Return straight away; the run continues in the background and calls callbackUrl when done.
     const p = runAgent({ ...body, runId, cfg, driver, quiet: true })
       .catch((e) => {
         req.log.error({ runId, err: e }, "run failed");
-        writeStatus(path.join(cfg.runsDir, runId), { runId, status: "failed", error: (e as Error).message });
+        writeStatus(path.join(cfg.runsDir, runId), { runId, status: "failed", error: (e as Error).message, ...(body.tenant ? { tenant: body.tenant } : {}) });
         if (body.callbackUrl)
           return fetch(body.callbackUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId, status: "failed", error: (e as Error).message }) }).catch(() => undefined);
       })
@@ -65,6 +97,7 @@ export function buildServer(cfg: Config = loadConfig()) {
     const statusFile = path.join(dir, "status.json");
     if (!fs.existsSync(statusFile)) return reply.code(404).send({ error: "not found" });
     const status = JSON.parse(fs.readFileSync(statusFile, "utf8"));
+    if (!tenantAllowed(status.tenant, req.headers["x-tenant"])) return reply.code(404).send({ error: "not found" });
     const reportFile = path.join(dir, "report.json");
     return { ...status, report: fs.existsSync(reportFile) ? JSON.parse(fs.readFileSync(reportFile, "utf8")) : null };
   });
@@ -72,6 +105,7 @@ export function buildServer(cfg: Config = loadConfig()) {
   app.get<{ Params: { id: string } }>("/runs/:id/report", async (req, reply) => {
     const { id } = req.params;
     if (!ID.test(id)) return reply.code(400).send({ error: "bad id" });
+    if (!tenantAllowed(readTenant(cfg.runsDir, id), req.headers["x-tenant"])) return reply.code(404).send({ error: "not found" });
     const file = path.join(cfg.runsDir, id, "report.md");
     if (!fs.existsSync(file)) return reply.code(404).send({ error: "report not ready" });
     return reply.type("text/markdown; charset=utf-8").send(fs.readFileSync(file, "utf8"));
@@ -81,6 +115,7 @@ export function buildServer(cfg: Config = loadConfig()) {
     const { id } = req.params;
     if (!ID.test(id)) return reply.code(400).send({ error: "bad id" });
     const dir = path.join(cfg.runsDir, id);
+    if (!tenantAllowed(readTenant(cfg.runsDir, id), req.headers["x-tenant"])) return reply.code(404).send({ error: "not found" });
     const pendingFile = path.join(dir, "pending_tasks.json");
     if (!fs.existsSync(pendingFile)) return reply.code(404).send({ error: "no pending tasks" });
     type Pending = { gid: string; key: string; name: string; notes: string; assigneeGid: string | null; dueOn: string };
@@ -91,6 +126,17 @@ export function buildServer(cfg: Config = loadConfig()) {
     for (const p of pending) {
       const { value } = await ledger.once(`${p.key}:approved`, () => adapters.asana.createTask({ name: p.name, notes: p.notes, assigneeGid: p.assigneeGid, dueOn: p.dueOn }));
       created.push({ pending: p.gid, ...value });
+    }
+    // Keep report.json truthful: the approved tasks now exist, so they are no longer "pending_approval".
+    const reportFile = path.join(dir, "report.json");
+    if (fs.existsSync(reportFile)) {
+      const report = JSON.parse(fs.readFileSync(reportFile, "utf8"));
+      const byPending = new Map(created.map((c) => [c.pending, c as { pending: string; gid?: string; url?: string }]));
+      report.tasks = (report.tasks ?? []).map((t: { gid: string; url?: string; status?: string }) => {
+        const c = byPending.get(t.gid);
+        return c ? { ...t, gid: c.gid ?? t.gid, url: c.url ?? t.url, status: "created" } : t;
+      });
+      fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
     }
     return { approved: created.length, tasks: created };
   });
